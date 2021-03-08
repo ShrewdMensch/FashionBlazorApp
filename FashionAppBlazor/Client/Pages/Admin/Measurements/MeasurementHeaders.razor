@@ -1,0 +1,186 @@
+﻿@page "/measurement-headers"
+@inject IMeasurementHeaderService MeasurementHeaderService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@using Radzen
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row">
+        <div class="col-sm-12">
+            <h3 class="page-title">@Title</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="admin-dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item active">@Title</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- /Page Header -->
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                @if (measurementHeaders == null)
+                {
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="float-right mt-2 mr-2 mb-4">
+                                <a @onclick="()=>EditClick(new EntityDto())" class="btn btn-primary btn-rounded float-right">
+                                    <i class="fa fa-plus m-r-5"></i> Add New
+                                </a>
+                            </div>
+                            <div class="float-right mt-2 mr-2">
+                                <a class="btn btn-primary btn-rounded float-right" @onclick="DeleteAllMeasurementHeader">
+                                    <i class="fa fa-trash m-r-5"></i> Delete All
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <RadzenGrid AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Advanced" AllowPaging="true" PageSize="5"
+                                        AllowSorting="true" Data="@measurementHeaders" TItem="EntityDto" ColumnWidth="200px" AllowColumnResize="true">
+                                <Columns>
+                                    <RadzenGridColumn TItem="EntityDto" Property="Id" Title="ID" Sortable="false" Filterable="false" />
+                                    <RadzenGridColumn TItem="EntityDto" Property="Name" Title="Name" />
+                                    <RadzenGridColumn TItem="EntityDto" Property="Id" Title="" Sortable="false" Filterable="false" TextAlign="TextAlign.Center">
+                                        <Template Context="data">
+                                            <a class="btn btn-sm btn-primary m-1" @onclick="()=>DeleteMeasurementHeader(data)">
+                                                <i class="fe fe-trash"></i> Delete
+                                            </a>
+                                            <a class="btn btn-sm btn-primary m-1" @onclick="()=>EditClick(data)">
+                                                <i class="fe fe-pencil"></i> Edit
+                                            </a>
+                                        </Template>
+                                    </RadzenGridColumn>
+                                </Columns>
+                            </RadzenGrid>
+                        </div>
+                    </div>
+                    <MeasurementUpsertModal @ref="Modal" Entity="MeasurementHeader" Title="MeasurementHeader" 
+                         HandleSubmit="SubmitAction" IsSubmitting="IsSubmitProcessing" />
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<DeleteConfirmation @ref="DeleteModal" HandleDelete="ConfirmDelete_Click"
+                    IsProcessingStart="IsDeleteProcessing" HandleDeleteAll="ConfirmDeleteAll_Click" />
+
+@code {
+    private IEnumerable<EntityDto> measurementHeaders;
+    private EntityDto MeasurementHeader { get; set; } = new EntityDto();
+    private string Title { get; } = "Measurement Headers";
+
+    private MeasurementUpsertModal Modal { get; set; }
+
+    private DeleteConfirmation DeleteModal { get; set; }
+
+    private bool IsDeleteProcessing { get; set; } = false;
+
+    private bool IsSubmitProcessing { get; set; } = false;
+
+    private Guid DeleteId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMeasurementHeaders();
+
+    }
+
+    private async Task LoadMeasurementHeaders()
+    {
+        measurementHeaders = await MeasurementHeaderService.GetMeasurementHeaders();
+        StateHasChanged();
+    }
+
+    private void EditClick(EntityDto measurementHeader)
+    {
+        MeasurementHeader = measurementHeader;
+
+        Modal.Open();
+        StateHasChanged();
+
+    }
+
+    private async Task SubmitAction()
+    {
+        IsSubmitProcessing = true;
+
+        await MeasurementHeaderService.CreateOrUpdateMeasurementHeader(MeasurementHeader);
+
+        Modal.Close();
+
+        if (MeasurementHeader.Id == default)
+        {
+            await JSRuntime.SweetAlertSuccess("MeasurementHeader Added Successfully!");
+        }
+
+        else
+        {
+            await JSRuntime.SweetAlertSuccess("MeasurementHeader Updated Successfully!");
+        }
+
+        await LoadMeasurementHeaders();
+
+        IsSubmitProcessing = false;
+    }
+
+    private async Task DeleteMeasurementHeader(EntityDto measurementHeader)
+    {
+        DeleteId = measurementHeader.Id;
+        DeleteModal.Name = measurementHeader.Name;
+        DeleteModal.Description = "MeasurementHeader";
+        await JSRuntime.InvokeVoidAsync("ShowDeleteConfirmationModal");
+    }
+
+    public async Task ConfirmDelete_Click(bool isConfirmed)
+    {
+        IsDeleteProcessing = true;
+
+        if (isConfirmed && DeleteId != default)
+        {
+            await MeasurementHeaderService.DeleteMeasurementHeader(DeleteId);
+
+            await LoadMeasurementHeaders();
+
+            await JSRuntime.SweetAlertSuccess("MeasurementHeader Deleted Successfully!");
+
+        }
+
+        await JSRuntime.InvokeVoidAsync("HideDeleteConfirmationModal");
+
+        IsDeleteProcessing = false;
+    }
+
+    private async Task DeleteAllMeasurementHeader()
+    {
+
+        DeleteModal.Description = "All";
+        DeleteModal.Name = "MesaurementHeaders";
+        await JSRuntime.InvokeVoidAsync("ShowDeleteConfirmationModal");
+    }
+
+    public async Task ConfirmDeleteAll_Click(bool isConfirmed)
+    {
+        IsDeleteProcessing = true;
+
+        if (isConfirmed)
+        {
+            await MeasurementHeaderService.DeleteAllMeasurementHeaders();
+            await JSRuntime.SweetAlertSuccess("All MeasurementHeaders Deleted Successfully!");
+            await LoadMeasurementHeaders();
+
+        }
+
+        await JSRuntime.InvokeVoidAsync("HideDeleteConfirmationModal");
+
+        IsDeleteProcessing = false;
+    }
+}

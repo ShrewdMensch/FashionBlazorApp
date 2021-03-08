@@ -1,0 +1,27 @@
+﻿@inject IJSRuntime JSRuntime
+
+<div>
+    @ChildContent
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    
+    [Parameter]
+    public string Method { get; set; }
+
+
+
+    protected override void OnParametersSet()
+    {
+        StateHasChanged();
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        //if (firstRender)
+            await JSRuntime.InvokeVoidAsync(Method, "#table");
+
+    }
+}

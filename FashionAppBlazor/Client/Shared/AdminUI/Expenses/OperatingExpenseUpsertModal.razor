@@ -1,0 +1,135 @@
+﻿<EditForm Model="OperatingExpenseData" OnValidSubmit="OnHandleSubmit">
+    <!-- Modal -->
+    <div class="modal @ModalClass" tabindex="-1" role="dialog" style="display:@ModalDisplay">
+        <div class="modal-dialog modal-md  modal-dialog-centered modal-dialog-scrollable" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">@TitlePrefix @Title</h5>
+                    <button @onclick="() => Close()" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <FluentValidationValidator />
+                        <div class="form-group col-sm-12">
+                            <label class="control-label" for="Edit_Name">
+                                @Title Name <span class="text-danger">*</span>
+                            </label>
+                            <InputText @bind-Value="OperatingExpenseData.Name" class="form-control" type="text" />
+                            <ValidationMessage For="()=>OperatingExpenseData.Name" />
+                        </div>
+                        <div class="form-group col-sm-12">
+                            <label class="control-label" for="Edit_Name">
+                                Total Cost <span class="text-danger">*</span>
+                            </label>
+                            <RadzenNumeric TValue="double" @bind-Value="OperatingExpenseData.TotalCost" Placeholder="Accessory Cost" class="form-control" />
+                            <ValidationMessage For="()=>OperatingExpenseData.TotalCost" />
+                        </div>
+                        <div class="col-sm-12 mt-3 form-group">
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="card-title mb-0 font-weight-600">Expense Type</span>
+                                </div>
+                                <div class="row card-body">
+                                    <RadzenRadioButtonList @bind-Value=@OperatingExpenseData.Type TValue="OperatingExpenseType">
+                                        <Items>
+                                            <RadzenRadioButtonListItem Text="@OperatingExpenseType.Daily.ToString()" Value="@OperatingExpenseType.Daily" />
+                                            <RadzenRadioButtonListItem Text="@OperatingExpenseType.Monthly.ToString()" Value="@OperatingExpenseType.Monthly" />
+                                            <RadzenRadioButtonListItem Text="@OperatingExpenseType.Yearly.ToString()" Value="@OperatingExpenseType.Yearly" />
+                                        </Items>
+                                    </RadzenRadioButtonList>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" @onclick="() => Close()" class="btn" data-dismiss="modal">
+                        <i class="flaticon-cancel-12"></i>
+                        Discard
+                    </button>
+                    @if (!IsSubmitting)
+                    {
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    }
+
+                    else
+                    {
+                        <button class="btn btn-primary" type="button" disabled>
+                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                            Save
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@if (ShowBackdrop)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+
+@code {
+
+    [Parameter]
+    public OperatingExpenseInputModel OperatingExpense { get; set; } = new OperatingExpenseInputModel();
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public bool IsSubmitting { get; set; }
+
+    public OperatingExpenseInputModel OperatingExpenseData { get; set; } = new OperatingExpenseInputModel();
+
+    private string TitlePrefix { get; set; }
+
+    [Parameter]
+    public EventCallback<EditContext> HandleSubmit { get; set; }
+
+    public string ModalDisplay = "none;";
+    public string ModalClass = "";
+    public bool ShowBackdrop = false;
+
+
+    protected override void OnParametersSet()
+    {
+        OperatingExpenseData = OperatingExpense;
+        if (OperatingExpense.Id == default)
+        {
+            TitlePrefix = "Add New ";
+        }
+        else
+        {
+            TitlePrefix = "Edit ";
+        }
+
+        StateHasChanged();
+    }
+
+    public void Open()
+    {
+        ModalDisplay = "block;";
+        ModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
+    }
+
+    public void Close()
+    {
+        ModalDisplay = "none";
+        ModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
+    }
+
+    private async Task OnHandleSubmit()
+    {
+        await HandleSubmit.InvokeAsync();
+    }
+
+}

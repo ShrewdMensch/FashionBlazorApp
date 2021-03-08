@@ -1,0 +1,192 @@
+﻿@page "/incurred-expenses"
+@inject IIncurredExpenseService IncurredExpenseService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject IMapper Mapper
+@using Radzen
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row">
+        <div class="col-sm-12">
+            <h3 class="page-title">@Title</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="admin-dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item active">@Title</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- /Page Header -->
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                @if (IncurredExpenseList == null)
+                {
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="float-right mt-2 mr-2 mb-4">
+                                <a @onclick="()=>EditClick(new IncurredExpenseDto())" class="btn btn-primary btn-rounded float-right">
+                                    <i class="fa fa-plus m-r-5"></i> Add New
+                                </a>
+                            </div>
+                            <div class="float-right mt-2 mr-2">
+                                <a class="btn btn-primary btn-rounded float-right" @onclick="DeleteAllIncurredExpense">
+                                    <i class="fa fa-trash m-r-5"></i> Delete All
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <RadzenGrid AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Advanced" AllowPaging="true" PageSize="5"
+                                        AllowSorting="true" Data="@IncurredExpenseList" TItem="IncurredExpenseDto" ColumnWidth="200px" AllowColumnResize="true">
+                                <Columns>
+                                    <RadzenGridColumn TItem="IncurredExpenseDto" Property="Id" Title="ID" Sortable="false" Filterable="false" />
+                                    <RadzenGridColumn TItem="IncurredExpenseDto" Property="Name" Title="Name" />
+                                    <RadzenGridColumn TItem="IncurredExpenseDto" Property="Cost" Title="Cost">
+                                        <Template Context="data">
+                                            @data.Cost.ToCurrency()
+                                        </Template>
+                                    </RadzenGridColumn>
+                                    <RadzenGridColumn TItem="IncurredExpenseDto" Property="Id" Title="" Sortable="false" Filterable="false">
+                                        <Template Context="data">
+                                            <a class="btn btn-sm btn-primary m-1" @onclick="()=>DeleteIncurredExpense(data)">
+                                                <i class="fe fe-trash"></i> Delete
+                                            </a>
+                                            <a class="btn btn-sm btn-primary m-1" @onclick="()=>EditClick(data)">
+                                                <i class="fe fe-pencil"></i> Edit
+                                            </a>
+                                        </Template>
+                                    </RadzenGridColumn>
+                                </Columns>
+                            </RadzenGrid>
+                        </div>
+                    </div>
+                    <IncurredExpenseUpsertModal @ref="Modal" IncurredExpense="IncurredExpense" Title="IncurredExpense" 
+                       HandleSubmit="SubmitAction" IsSubmitting="IsSubmitProcessing" />
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<DeleteConfirmation @ref="DeleteModal" HandleDelete="ConfirmDelete_Click"
+                    IsProcessingStart="IsDeleteProcessing" HandleDeleteAll="ConfirmDeleteAll_Click" />
+
+@code {
+    private IEnumerable<IncurredExpenseDto> IncurredExpenseList { get; set; }
+    private IncurredExpenseDto IncurredExpense { get; set; } = new IncurredExpenseDto();
+    private string Title { get; } = "Incurred Expenses";
+
+    private IncurredExpenseUpsertModal Modal { get; set; }
+
+    private DeleteConfirmation DeleteModal { get; set; }
+
+    private bool IsDeleteProcessing { get; set; } = false;
+
+    private bool IsSubmitProcessing { get; set; } = false;
+
+    private Guid DeleteId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadIncurredExpenses();
+
+    }
+
+    private async Task LoadIncurredExpenses()
+    {
+        IncurredExpenseList = await IncurredExpenseService.GetIncurredExpenses();
+        StateHasChanged();
+    }
+
+    private void EditClick(IncurredExpenseDto incurredExpense)
+    {
+        IncurredExpense = incurredExpense;
+
+        Modal.Open();
+        StateHasChanged();
+
+    }
+
+    private async Task SubmitAction()
+    {
+        IsSubmitProcessing = true;
+
+        await IncurredExpenseService.CreateOrUpdateIncurredExpense(IncurredExpense);
+
+        Modal.Close();
+
+        if (IncurredExpense.Id == default)
+        {
+            await JSRuntime.SweetAlertSuccess("IncurredExpense Added Successfully!");
+        }
+
+        else
+        {
+            await JSRuntime.SweetAlertSuccess("IncurredExpense Updated Successfully!");
+        }
+
+        await LoadIncurredExpenses();
+
+        IsSubmitProcessing = false;
+    }
+
+    private async Task DeleteIncurredExpense(IncurredExpenseDto incurredExpense)
+    {
+        DeleteId = incurredExpense.Id;
+        DeleteModal.Name = incurredExpense.Name;
+        DeleteModal.Description = "IncurredExpense";
+        await JSRuntime.InvokeVoidAsync("ShowDeleteConfirmationModal");
+    }
+
+    public async Task ConfirmDelete_Click(bool isConfirmed)
+    {
+        IsDeleteProcessing = true;
+
+        if (isConfirmed && DeleteId != default)
+        {
+            await IncurredExpenseService.DeleteIncurredExpense(DeleteId);
+
+            await LoadIncurredExpenses();
+
+            await JSRuntime.SweetAlertSuccess("IncurredExpense Deleted Successfully!");
+
+        }
+
+        await JSRuntime.InvokeVoidAsync("HideDeleteConfirmationModal");
+
+        IsDeleteProcessing = false;
+    }
+
+    private async Task DeleteAllIncurredExpense()
+    {
+
+        DeleteModal.Description = "All";
+        DeleteModal.Name = "IncurredExpenses";
+        await JSRuntime.InvokeVoidAsync("ShowDeleteConfirmationModal");
+    }
+
+    public async Task ConfirmDeleteAll_Click(bool isConfirmed)
+    {
+        IsDeleteProcessing = true;
+
+        if (isConfirmed)
+        {
+            await IncurredExpenseService.DeleteAllIncurredExpenses();
+            await JSRuntime.SweetAlertSuccess("All IncurredExpenses Deleted Successfully!");
+            await LoadIncurredExpenses();
+
+        }
+
+        await JSRuntime.InvokeVoidAsync("HideDeleteConfirmationModal");
+
+        IsDeleteProcessing = false;
+    }
+}

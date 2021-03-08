@@ -1,0 +1,46 @@
+﻿input.parsley-error,
+span.parsley-error,
+select.parsley-error,
+textarea.parsley-error,
+input.input-validation-error,
+select.input-validation-error,
+textarea.input-validation-error,
+input.flatpickr-input.parsley-error,
+.form-control.invalid {
+    color: #b94a48 !important;
+    background-color: #f2dede !important;
+    border: 1px solid #eed3d7 !important;
+}
+
+.valid.modified:not([type=checkbox],[type=radio]) {
+    color: #888 !important;
+    background-color: #ddf8e5 !important;
+    border: 1px solid #ddf8e5 !important;
+}
+
+.field-validation-error,
+.field-validation-error.text-danger,
+.validation-message {
+    font-size: 0.9em;
+    line-height: 0.9em;
+    color: #b94a48;
+    margin-top:3px!important;
+}
+
+.parsley-errors-list {
+    margin: 2px 0 3px;
+    padding: 0;
+    list-style-type: none;
+    font-size: 0.9em;
+    line-height: 0.9em;
+    opacity: 0;
+    color: #b94a48;
+    transition: all 0.3s ease-in;
+    -o-transition: all 0.3s ease-in;
+    -moz-transition: all 0.3s ease-in;
+    -webkit-transition: all 0.3s ease-in;
+}
+
+    .parsley-errors-list.filled {
+        opacity: 1;
+    }

@@ -1,0 +1,46 @@
+﻿@page "/fetchdata"
+@inject HttpClient Http
+
+<h1>Weather accessory</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+@if (accessories == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>SN</th>
+                <th>Name</th>
+                <th>Cost</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ var count = 0;}
+            @foreach (var accessory in accessories)
+            {
+                <tr>
+                    <td>@(++count)</td>
+                    <td>@accessory.Name</td>
+                    <td>@accessory.Cost</td>
+                    <td></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private AccessoryDto[] accessories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        accessories = await Http.GetFromJsonAsync<AccessoryDto[]>("api/accessories/all");
+    }
+
+}

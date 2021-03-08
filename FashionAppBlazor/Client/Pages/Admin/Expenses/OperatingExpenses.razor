@@ -1,0 +1,194 @@
+﻿@page "/operating-expenses"
+@inject IOperatingExpenseService OperatingExpenseService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject IMapper Mapper
+@using Radzen
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row">
+        <div class="col-sm-12">
+            <h3 class="page-title">@Title</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="admin-dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item active">@Title</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- /Page Header -->
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                @if (OperatingExpenseList == null)
+                {
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="float-right mt-2 mr-2 mb-4">
+                                <a @onclick="()=>EditClick(new OperatingExpenseDto())" class="btn btn-primary btn-rounded float-right">
+                                    <i class="fa fa-plus m-r-5"></i> Add New
+                                </a>
+                            </div>
+                            <div class="float-right mt-2 mr-2">
+                                <a class="btn btn-primary btn-rounded float-right" @onclick="DeleteAllOperatingExpense">
+                                    <i class="fa fa-trash m-r-5"></i> Delete All
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <RadzenGrid AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Advanced" AllowPaging="true" PageSize="5"
+                                        AllowSorting="true" Data="@OperatingExpenseList" TItem="OperatingExpenseDto" ColumnWidth="200px" AllowColumnResize="true">
+                                <Columns>
+                                    <RadzenGridColumn TItem="OperatingExpenseDto" Property="Id" Title="ID" Sortable="false" Filterable="false" />
+                                    <RadzenGridColumn TItem="OperatingExpenseDto" Property="Name" Title="Name" />
+                                    <RadzenGridColumn TItem="OperatingExpenseDto" Property="TotalCost" Title="Total Cost">
+                                        <Template Context="data">
+                                            @data.TotalCost.ToCurrency()
+                                        </Template>
+                                    </RadzenGridColumn>
+                                    <RadzenGridColumn TItem="OperatingExpenseDto" Property="CostPerDay" Title="Cost per day">
+                                        <Template Context="data">
+                                            @data.CostPerDay.ToCurrency()
+                                        </Template>
+                                    </RadzenGridColumn>
+                                    <RadzenGridColumn TItem="OperatingExpenseDto" Property="Type" Title="Type" />
+                                    <RadzenGridColumn TItem="OperatingExpenseDto" Property="Id" Title="" Sortable="false" Filterable="false">
+                                        <Template Context="data">
+                                            <a class="btn btn-sm btn-primary m-1" @onclick="()=>DeleteOperatingExpense(data)">
+                                                <i class="fe fe-trash"></i> Delete
+                                            </a>
+                                            <a class="btn btn-sm btn-primary m-1" @onclick="()=>EditClick(data)">
+                                                <i class="fe fe-pencil"></i> Edit
+                                            </a>
+                                        </Template>
+                                    </RadzenGridColumn>
+                                </Columns>
+                            </RadzenGrid>
+                        </div>
+                    </div>
+                    <OperatingExpenseUpsertModal @ref="Modal" OperatingExpense="OperatingExpense" Title="OperatingExpense"
+                           HandleSubmit="SubmitAction" IsSubmitting="IsSubmitProcessing"/>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<DeleteConfirmation @ref="DeleteModal" HandleDelete="ConfirmDelete_Click"
+                    IsProcessingStart="IsDeleteProcessing" HandleDeleteAll="ConfirmDeleteAll_Click" />
+
+@code {
+    private IEnumerable<OperatingExpenseDto> OperatingExpenseList { get; set; }
+    private OperatingExpenseInputModel OperatingExpense { get; set; } = new OperatingExpenseInputModel();
+    private string Title { get; } = "Operating Expenses";
+
+    private OperatingExpenseUpsertModal Modal { get; set; }
+
+    private DeleteConfirmation DeleteModal { get; set; }
+
+    private bool IsDeleteProcessing { get; set; } = false;
+
+    private bool IsSubmitProcessing { get; set; } = false;
+
+    private Guid DeleteId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadOperatingExpenses();
+
+    }
+
+    private async Task LoadOperatingExpenses()
+    {
+        OperatingExpenseList = await OperatingExpenseService.GetOperatingExpenses();
+        StateHasChanged();
+    }
+
+    private void EditClick(OperatingExpenseDto operatingExpense)
+    {
+        OperatingExpense = Mapper.Map<OperatingExpenseDto, OperatingExpenseInputModel>(operatingExpense);
+
+        Modal.Open();
+        StateHasChanged();
+
+    }
+
+    private async Task SubmitAction()
+    {
+        await OperatingExpenseService.CreateOrUpdateOperatingExpense(OperatingExpense);
+
+        Modal.Close();
+
+        if (OperatingExpense.Id == default)
+        {
+            await JSRuntime.SweetAlertSuccess("OperatingExpense Added Successfully!");
+        }
+
+        else
+        {
+            await JSRuntime.SweetAlertSuccess("OperatingExpense Updated Successfully!");
+        }
+
+        await LoadOperatingExpenses();
+    }
+
+    private async Task DeleteOperatingExpense(OperatingExpenseDto operatingExpense)
+    {
+        DeleteId = operatingExpense.Id;
+        DeleteModal.Name = operatingExpense.Name;
+        DeleteModal.Description = "OperatingExpense";
+        await JSRuntime.InvokeVoidAsync("ShowDeleteConfirmationModal");
+    }
+
+    public async Task ConfirmDelete_Click(bool isConfirmed)
+    {
+        IsDeleteProcessing = true;
+
+        if (isConfirmed && DeleteId != default)
+        {
+            await OperatingExpenseService.DeleteOperatingExpense(DeleteId);
+
+            await LoadOperatingExpenses();
+
+            await JSRuntime.SweetAlertSuccess("OperatingExpense Deleted Successfully!");
+
+        }
+
+        await JSRuntime.InvokeVoidAsync("HideDeleteConfirmationModal");
+
+        IsDeleteProcessing = false;
+    }
+
+    private async Task DeleteAllOperatingExpense()
+    {
+
+        DeleteModal.Description = "All";
+        DeleteModal.Name = "OperatingExpenses";
+        await JSRuntime.InvokeVoidAsync("ShowDeleteConfirmationModal");
+    }
+
+    public async Task ConfirmDeleteAll_Click(bool isConfirmed)
+    {
+        IsDeleteProcessing = true;
+
+        if (isConfirmed)
+        {
+            await OperatingExpenseService.DeleteAllOperatingExpenses();
+            await JSRuntime.SweetAlertSuccess("All OperatingExpenses Deleted Successfully!");
+            await LoadOperatingExpenses();
+
+        }
+
+        await JSRuntime.InvokeVoidAsync("HideDeleteConfirmationModal");
+
+        IsDeleteProcessing = false;
+    }
+}

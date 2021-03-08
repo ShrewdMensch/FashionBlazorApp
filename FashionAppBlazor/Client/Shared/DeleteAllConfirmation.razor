@@ -1,0 +1,59 @@
+﻿<div class="modal fade animated fadeInUp modal-notification custo-fadeInUp show" id="deleteModal"
+     tabindex="-1" role="dialog" aria-labelledby="deleteModal" aria-modal="true">
+    <div class="modal-dialog" role="document" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <div class="icon-content text-danger">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         class="feather feather-bell">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                </div>
+                @if (Description == "All")
+                {
+                    <p class="text-danger">
+                        Are you sure you want to delete All,
+                        <span class="text-primary font-weight-bold">@Name</span>
+                        permanently from the System?
+                    </p>
+                }
+
+                else
+                {
+                    <p class="text-danger">
+                        Are you sure you want to delete @Description,
+                        <span class="text-primary font-weight-bold">@Name</span>
+                        permanently from the System?
+                    </p>
+                }
+
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button class="btn" data-dismiss="modal"><i class="flaticon-cancel-12"></i> Discard</button>
+                <button class="btn btn-danger" @onclick="()=>OnHandleDelete(true)">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    [Parameter]
+    public string Description { get; set; }
+
+    [Parameter]
+    public string Name { get; set; }
+
+    public EventCallback<bool> HandleDelete { get; set; }
+
+
+    public async Task OnHandleDelete(bool value)
+    {
+        await HandleDelete.InvokeAsync(value);
+    }
+
+}

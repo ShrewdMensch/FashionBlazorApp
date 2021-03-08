@@ -1,0 +1,195 @@
+﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
+for details on configuring this project to bundle and minify static web assets. */
+
+a.navbar-brand {
+  white-space: normal;
+  text-align: center;
+  word-break: break-all;
+}
+
+/* Provide sufficient contrast against white background */
+a {
+  color: #0366d6;
+}
+
+/*.btn-primary {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}*/
+
+.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
+  color: #fff;
+  background-color: #1b6ec2;
+  border-color: #1861ac;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  font-size: 14px;
+}
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.border-top {
+  border-top: 1px solid #e5e5e5;
+}
+.border-bottom {
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.box-shadow {
+  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+}
+
+button.accept-policy {
+  font-size: 1rem;
+  line-height: inherit;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 60px;
+}
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 60px; /* Vertically center the text there */
+}
+
+textarea {
+    resize: none !important;
+}
+
+/* Sweet Alerts Styles */
+.swal-title {
+    text-align: center !important;
+}
+
+.swal-text,
+.swal-content {
+    text-align: center !important;
+    margin-top: 25px !important;
+    font-size: 18px !important;
+}
+
+.swal-button, .swal-button.swal-button--confirm {
+    background-color: #c12942;
+    border-color: #c12942;
+}
+    .swal-button:hover, .swal-button:not([disabled]):hover, .swal-button.swal-button--confirm:hover {
+        background-color: #d8455d;
+        border-color: #d8455d;
+    }
+/* Custom Inputs */
+.modal-content input,
+.modal-content select,
+.modal-content textarea {
+    border-radius: 10px;
+    padding: .75rem 1.25rem;
+}
+
+
+.select2-container .select2-selection--single,
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    border-radius: 10px !important;
+}
+
+.select2.select2-container.mb-4.select2-container--default {
+    margin-bottom: 0 !important;
+}
+
+li.select2-results__option {
+    transition: all 0.3s ease-in;
+    -o-transition: all 0.3s ease-in;
+    -moz-transition: all 0.3s ease-in;
+    -webkit-transition: all 0.3s ease-in;
+}
+
+    li.select2-results__option:hover {
+        background-color: #c12942 !important;
+        color: #fff !important;
+    }
+
+/* Modal Styles */
+.modal-header {
+    text-align: center !important;
+    border: none !important;
+    background-color: #c12942;
+    color: #fff !important;
+}
+
+    .modal-header .modal-title,
+    .modal-header button.close span {
+        color: #fff !important;
+    }
+
+.modal-content .modal-header svg {
+    width: 32px;
+    color: #fff;
+    height: 32px;
+    margin-right: 10px;
+}
+
+.modal-notification .modal-body .icon-content svg {
+    color: #e7515a;
+}
+
+table.display .btn{
+    float:right;
+}
+
+/*input Box in Table*/
+table .input-group.bootstrap-touchspin.bootstrap-touchspin-injected {
+    width: 135px;
+}
+
+.rz-datatable-thead, .rz-datatable-thead th, .rz-paginator-first,
+.rz-button.rz-button-md.btn-primary,
+.rz-paginator-prev, .rz-paginator-last, .rz-paginator-next,
+.rz-dropdown-item.rz-state-highlight,
+.rz-spinner-button-icon,
+.rz-radiobutton-box.rz-state-activ,
+.rz-chkbox-box.rz-state-active {
+    background-color: #c12942 !important;
+    color: #fff !important;
+}
+    .rz-datatable-thead th .rz-column-title, .rzi.rz-grid-filter-icon, .rz-sortable-column-icon {
+        color: #fff !important;
+    }
+
+.rz-dropdown-item:hover,
+.rz-paginator-page.rz-paginator-element.rz-state-active,
+.rz-radiobutton-box.rz-state-active 
+{
+    background-color: #d53751 !important;
+    color: #fff !important;
+}
+
+.rz-datatable-emptymessage{
+    text-align:center!important;
+}
+.rz-column-title{
+    font-weight:600!important;
+}
+
+.rz-cell-data .btn{
+    float:right!important;
+}
+
+.rz-checkbox{
+    margin-bottom:10px !important;
+}
