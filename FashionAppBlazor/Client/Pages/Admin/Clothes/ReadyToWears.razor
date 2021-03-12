@@ -1,0 +1,381 @@
+﻿@page "/clothes-ready-to-wears"
+@inject IReadyToWearService ReadyToWearService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject IFileService FileService
+<!-- Page Header -->
+<div class="page-header">
+    <div class="row">
+        <div class="col-sm-12">
+            <h3 class="page-title">@Title</h3>
+            <ul class="breadcrumb">
+                <li class="breadcrumb-item"><a href="admin-dashboard">Dashboard</a></li>
+                <li class="breadcrumb-item active">@Title</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<!-- /Page Header -->
+<div class="row">
+    <div class="col-sm-12">
+        <div class="card">
+            <div class="card-body">
+                @if (readyToWears == null)
+                {
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="float-right mt-2 mr-2 mb-4">
+                                <a @onclick="()=>EditClick(new ReadyToWearDto())" class="btn btn-primary btn-rounded float-right">
+                                    <i class="fa fa-plus m-r-5"></i> Add New
+                                </a>
+                            </div>
+                            <div class="float-right mt-2 mr-2">
+                                <a class="btn btn-primary btn-rounded float-right" @onclick="DeleteAllAcessory">
+                                    <i class="fa fa-trash m-r-5"></i> Delete All
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-sm-12">
+                            <RadzenGrid AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Advanced" AllowPaging="true" PageSize="5"
+                                        AllowSorting="true" Data="@readyToWears" TItem="ReadyToWearDto" ColumnWidth="200px" AllowColumnResize="true">
+                                <Columns>
+                                    <RadzenGridColumn TItem="ReadyToWearDto" Property="Name" Title="Name" />
+                                    <RadzenGridColumn TItem="ReadyToWearDto" Property="TypeOfCloth" Title="Type of Cloth" />
+                                    <RadzenGridColumn TItem="ReadyToWearDto" Property="Cost" Title="Cost">
+                                        <Template Context="data">
+                                            @data.Cost.ToCurrency()
+                                        </Template>
+                                    </RadzenGridColumn>
+                                    <RadzenGridColumn TItem="ReadyToWearDto" Property="NumberInStock" Title="Number In Stock" />
+                                    <RadzenGridColumn TItem="ReadyToWearDto" Property="NumberInStock" Title="Status">
+                                        <Template Context="data">
+                                            @if (data.NumberInStock < 1)
+                                            {
+                                                <span class="badge badge-danger badge-pill">Out of stock</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-success badge-pill">In stock</span>
+                                            }
+                                        </Template>
+                                    </RadzenGridColumn>
+                                    <RadzenGridColumn TItem="ReadyToWearDto" Property="Id" Title="" Sortable="false" Filterable="false">
+                                        <Template Context="data">
+                                            <a class="btn btn-sm btn-primary m-1 float-right" @onclick="()=>DeleteAcessory(data)">
+                                                <i class="fe fe-trash"></i> Delete
+                                            </a>
+                                            <a class="btn btn-sm btn-primary m-1 float-right" @onclick="()=>EditClick(data)">
+                                                <i class="fe fe-pencil"></i> Edit
+                                            </a>
+                                        </Template>
+                                    </RadzenGridColumn>
+                                </Columns>
+                            </RadzenGrid>
+                        </div>
+                    </div>
+                    <ReadyToWearUpsertModal @ref="Modal" ReadyToWear="ReadyToWear" HandleSubmit="SubmitAction" HandleDeletePhoto="DeletePhoto"
+                                            IsSubmitting="IsSubmitProcessing" HandleImageUpload="ImageUpload"
+                                            IsPhotoUploading="IsPhotoProcessing" HandleDiscardButtonClicked="OnDiscard" />
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<DeleteConfirmation @ref="DeleteModal" HandleDelete="ConfirmDelete_Click"
+                    IsProcessingStart="IsDeleteProcessing" HandleDeleteAll="ConfirmDeleteAll_Click" />
+
+@code {
+    private IEnumerable<ReadyToWearDto> readyToWears;
+    private ReadyToWearDto ReadyToWear { get; set; } = new ReadyToWearDto();
+    private string Title { get; } = "Ready To Wears";
+
+    private ReadyToWearUpsertModal Modal { get; set; }
+
+    private DeleteConfirmation DeleteModal { get; set; }
+
+    private bool IsDeleteProcessing { get; set; } = false;
+
+    private bool IsSubmitProcessing { get; set; } = false;
+
+    private bool IsPhotoProcessing { get; set; } = false;
+
+    private Guid DeleteId { get; set; }
+
+    private List<string> DeletedPhotos { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadReadyToWears();
+
+    }
+
+    private async Task LoadReadyToWears()
+    {
+        readyToWears = await ReadyToWearService.GetReadyToWears();
+        StateHasChanged();
+    }
+
+    private void EditClick(ReadyToWearDto readyToWear)
+    {
+        ReadyToWear = readyToWear;
+
+        Modal.Open();
+        StateHasChanged();
+
+    }
+
+    private async Task SubmitAction()
+    {
+        IsSubmitProcessing = true;
+
+        var readyToWearResult = await ReadyToWearService.CreateOrUpdateReadyToWear(ReadyToWear);
+        await AddReadyToWearPhoto(readyToWearResult);
+
+        if (ReadyToWear.Id == default)
+        {
+            await Modal.Close();
+            await JSRuntime.SweetAlertSuccess("ReadyToWear Added Successfully!");
+        }
+
+        else
+        {
+            if (DeletedPhotos != null && DeletedPhotos.Any())
+            {
+                foreach (var deletedPhoto in DeletedPhotos)
+                {
+                    await FileService.DeletePhoto(deletedPhoto.Replace(ReadyToWearImagesFolderName, ""));
+
+                    await ReadyToWearService.DeletePhotoByUrl(deletedPhoto.Replace(ReadyToWearImagesFolderName, ""));
+                }
+            }
+
+            await Modal.Close();
+            await JSRuntime.SweetAlertSuccess("ReadyToWear Updated Successfully!");
+        }
+
+        await LoadReadyToWears();
+
+
+        IsSubmitProcessing = false;
+    }
+
+    private async Task DeleteAcessory(ReadyToWearDto readyToWear)
+    {
+        DeleteId = readyToWear.Id;
+        DeleteModal.Name = readyToWear.Name;
+        DeleteModal.Description = "ReadyToWear";
+        await JSRuntime.InvokeVoidAsync("ShowDeleteConfirmationModal");
+    }
+
+    public async Task ConfirmDelete_Click(bool isConfirmed)
+    {
+        IsDeleteProcessing = true;
+
+        if (isConfirmed && DeleteId != default)
+        {
+            await ReadyToWearService.DeleteReadyToWear(DeleteId);
+
+            await LoadReadyToWears();
+
+            await JSRuntime.SweetAlertSuccess("ReadyToWear Deleted Successfully!");
+
+        }
+
+        await JSRuntime.InvokeVoidAsync("HideDeleteConfirmationModal");
+
+        IsDeleteProcessing = false;
+    }
+
+    private async Task DeleteAllAcessory()
+    {
+
+        DeleteModal.Description = "All";
+        DeleteModal.Name = "ReadyToWears";
+        await JSRuntime.InvokeVoidAsync("ShowDeleteConfirmationModal");
+    }
+
+    public async Task ConfirmDeleteAll_Click(bool isConfirmed)
+    {
+        IsDeleteProcessing = true;
+
+        if (isConfirmed)
+        {
+            await ReadyToWearService.DeleteAllReadyToWears();
+            await JSRuntime.SweetAlertSuccess("All ReadyToWear Deleted Successfully!");
+            await LoadReadyToWears();
+
+        }
+
+        await JSRuntime.InvokeVoidAsync("HideDeleteConfirmationModal");
+
+        IsDeleteProcessing = false;
+    }
+
+    public async Task ImageUpload(InputFileChangeEventArgs e)
+    {
+        IsPhotoProcessing = true;
+
+        try
+        {
+            var images = new List<string>();
+
+            if (e.GetMultipleFiles(20).Count > 0)
+            {
+                foreach (var file in e.GetMultipleFiles(20))
+                {
+                    System.IO.FileInfo fileInfo = new System.IO.FileInfo(file.Name);
+                    if (fileInfo.Extension.ToLower() == ".jpg" ||
+                        fileInfo.Extension.ToLower() == ".png" ||
+                        fileInfo.Extension.ToLower() == ".jpeg")
+                    {
+                        var fileData = await GetFileData(file);
+
+                        var uploadedImagePath = await FileService.UploadPhoto(fileData);
+
+                        images.Add(uploadedImagePath);
+                    }
+                    else
+                    {
+                        await JSRuntime.SweetAlertError("Please select .jpg/.jpeg/.png file only");
+                        return;
+                    }
+                }
+
+                if (images.Any())
+                {
+                    @*if (ReadyToWear.PhotoUrls != null)
+                        {
+                            ReadyToWear.PhotoUrls.AddRange(images);
+                        }
+
+                        else
+                        {
+                            ReadyToWear.PhotoUrls = new List<string>();
+                            ReadyToWear.PhotoUrls.AddRange(images);
+                        }
+
+                        if (NewlyAddedPhotos != null)
+                        {
+                            NewlyAddedPhotos.AddRange(images);
+                        }
+
+                        else
+                        {
+                            NewlyAddedPhotos = new List<string>();
+                            NewlyAddedPhotos.AddRange(images);
+                        }*@
+
+                    ReadyToWear.PhotoUrls ??= new List<string>();
+                    ReadyToWear.PhotoUrls.AddRange(images);
+                }
+                else
+                {
+                    await JSRuntime.SweetAlertError("Image uploading failed");
+                    return;
+                }
+            }
+
+            IsPhotoProcessing = false;
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.SweetAlertError(ex.Message);
+            IsPhotoProcessing = false;
+        }
+    }
+
+    private async Task DeletePhoto(string imageUrl)
+    {
+        try
+        {
+            var imageIndex = ReadyToWear.PhotoUrls.FindIndex(x => x == imageUrl);
+
+            if (ReadyToWear.Id == default)
+            {
+                var result = FileService.DeletePhoto(imageUrl.Replace(@"ReadyToWearImages/", ""));
+            }
+            else
+            {
+                //update
+                DeletedPhotos ??= new List<string>();
+                DeletedPhotos.Add(imageUrl);
+            }
+
+            ReadyToWear.PhotoUrls.RemoveAt(imageIndex);
+
+        }
+
+        catch (Exception ex)
+        {
+            await JSRuntime.SweetAlertError(ex.Message);
+        }
+
+    }
+
+    private async Task AddReadyToWearPhoto(ReadyToWearDto readyToWear)
+    {
+        foreach (var imageUrl in ReadyToWear.PhotoUrls)
+        {
+            if (ReadyToWear.Photos == null || ReadyToWear.Photos.Where(x => x.Url == imageUrl).Count() == 0)
+            {
+
+                var newPhotoDto = new ReadyToWearPhotoDto()
+                {
+                    ReadyToWearId = readyToWear.Id,
+                    Url = imageUrl
+                };
+
+                await ReadyToWearService.CreatePhoto(newPhotoDto);
+
+                ReadyToWear.Photos.Add(newPhotoDto); ///this addition is not persisted to DB
+            }
+        }
+    }
+
+    private async Task OnDiscard(bool isDiscarded)
+    {
+        if (isDiscarded && ReadyToWear.PhotoUrls != null)
+        {
+            foreach (var imageUrl in ReadyToWear.PhotoUrls)
+            {
+                if (ReadyToWear.Photos == null || !ReadyToWear.Photos.Any() || ReadyToWear.Photos.Where(x => x.Url == imageUrl).Count() == 0)
+                {
+
+                    await FileService.DeletePhoto(imageUrl.Replace(ReadyToWearImagesFolderName, ""));
+                }
+            }
+
+            if (ReadyToWear.Photos != null)
+            {
+                ReadyToWear.PhotoUrls = ReadyToWear.Photos.Select(p => p.Url).ToList();
+            }
+
+            else
+            {
+                ReadyToWear.PhotoUrls = null;
+            }
+        }
+    }
+
+    private async Task<FileDataDto> GetFileData(IBrowserFile imgFile)
+    {
+        var buffers = new byte[imgFile.Size];
+        await imgFile.OpenReadStream().ReadAsync(buffers);
+        string imageType = imgFile.ContentType;
+        return new FileDataDto()
+        {
+            Data = buffers,
+            FileType = imageType,
+            Size = imgFile.Size
+        };
+    }
+}

@@ -17,4 +17,8 @@
     <ProjectReference Include="..\Client\FashionAppBlazor.Client.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
 </Project>

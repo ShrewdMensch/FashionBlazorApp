@@ -1,7 +1,10 @@
+using Application.PhotoAccessor;
 using Application.Repository;
 using FashionAppBlazor.Client.Services.Contract;
 using FashionAppBlazor.Client.Services.Implementation;
+using Infrastructure.PhotoAccessor;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Net.Http;
@@ -23,6 +26,8 @@ namespace FashionAppBlazor.Client
             builder.Services.AddScoped<IOperatingExpenseService, OperatingExpenseService>();
             builder.Services.AddScoped<IIncurredExpenseService, IncurredExpenseService>();
             builder.Services.AddScoped<ITypeOfClothService, TypeOfClothService>();
+            builder.Services.AddScoped<IReadyToWearService, ReadyToWearService>();
+            builder.Services.AddScoped<IFileService, FileService>();
             builder.Services.AddAutoMapper(typeof(IRepository));
 
             await builder.Build().RunAsync();

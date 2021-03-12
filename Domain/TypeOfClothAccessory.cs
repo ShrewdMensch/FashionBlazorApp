@@ -12,7 +12,7 @@ namespace Domain
 
         public int Quantity { get; set; }
 
-        public double TotalCost => Accessory.Cost * Quantity;
+        public double TotalCost => Accessory == null ? 0: Accessory.Cost * Quantity;
 
         public virtual Accessory Accessory { get; set; }
 

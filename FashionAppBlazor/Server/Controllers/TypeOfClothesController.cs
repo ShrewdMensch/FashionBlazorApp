@@ -43,17 +43,17 @@ namespace FashionAppBlazor.Server.Controllers
 
                 else
                 {
-                    var newTypeOfCloth = new TypeOfCloth
+                    typeOfCloth  = new TypeOfCloth
                     {
                         Name = typeOfClothInput.Name.ToTitleCase(),
                         ProductionDays = typeOfClothInput.ProductionDays
                     };
 
-                    Repository.Add(newTypeOfCloth);
+                    Repository.Add(typeOfCloth);
 
-                    AddTypeOfClothMeasurementHeaders(typeOfClothInput, newTypeOfCloth);
-                    AddTypeOfClothAccessories(typeOfClothInput, newTypeOfCloth);
-                    AddTypeOfClothIncurredExpenses(typeOfClothInput, newTypeOfCloth);
+                    AddTypeOfClothMeasurementHeaders(typeOfClothInput, typeOfCloth);
+                    AddTypeOfClothAccessories(typeOfClothInput, typeOfCloth);
+                    AddTypeOfClothIncurredExpenses(typeOfClothInput, typeOfCloth);
                 }
 
                 await Repository.SaveAll();

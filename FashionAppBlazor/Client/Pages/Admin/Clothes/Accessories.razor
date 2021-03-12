@@ -45,7 +45,7 @@
                             <RadzenGrid AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Advanced" AllowPaging="true" PageSize="5"
                                         AllowSorting="true" Data="@accessories" TItem="AccessoryDto" ColumnWidth="200px" AllowColumnResize="true">
                                 <Columns>
-                                    <RadzenGridColumn TItem="AccessoryDto" Property="Id" Title="ID" />
+                                    <RadzenGridColumn TItem="AccessoryDto" Property="Id" Title="ID" Sortable="false" Filterable="false" />
                                     <RadzenGridColumn TItem="AccessoryDto" Property="Name" Title="Name" />
                                     <RadzenGridColumn TItem="AccessoryDto" Property="Cost" Title="Cost">
                                         <Template Context="data">
@@ -127,7 +127,7 @@
 
         else
         {
-            await JSRuntime.SweetAlertSuccess("Accessory Updated Successfully!");
+            await JSRuntime.ToastrSuccess("Accessory Updated Successfully!");
         }
 
         await LoadAccessories();

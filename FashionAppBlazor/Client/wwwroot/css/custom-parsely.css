@@ -12,10 +12,10 @@ input.flatpickr-input.parsley-error,
     border: 1px solid #eed3d7 !important;
 }
 
-.valid.modified:not([type=checkbox],[type=radio]) {
-    color: #888 !important;
+.valid.modified:not([type=checkbox]) {
+   /* color: #888 !important;
     background-color: #ddf8e5 !important;
-    border: 1px solid #ddf8e5 !important;
+    border: 1px solid #ddf8e5 !important;*/
 }
 
 .field-validation-error,

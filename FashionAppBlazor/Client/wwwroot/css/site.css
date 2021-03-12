@@ -193,3 +193,26 @@ table .input-group.bootstrap-touchspin.bootstrap-touchspin-injected {
 .rz-checkbox{
     margin-bottom:10px !important;
 }
+
+.rz-dropdown-panel.rz-popup{
+    z-index: 10000!important;
+}
+
+.ready-to-wear-image {
+    display: block;
+    width: 100%;
+    height: 150px;
+    background-size: cover !important;
+    border: 3px solid #c12942;
+    position: relative;
+}
+
+.ready-to-wear-image-title {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: white;
+    color: red;
+    padding: 0px 6px;
+    display: inline-block
+}

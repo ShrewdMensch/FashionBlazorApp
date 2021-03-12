@@ -33,9 +33,9 @@ namespace Application.AutoMapper.ValueResolvers
                 photoUrls.Add(photo.Url);
             }
 
-            destination.Photos = photoUrls;
+            //destination.PhotoUrls = photoUrls;
 
-            destination.MainPhoto = source.Photos?.FirstOrDefault()?.Url;
+            //destination.MainPhoto = source.Photos?.FirstOrDefault()?.Url;
 
 
             return cost;

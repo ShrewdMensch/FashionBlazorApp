@@ -12,11 +12,11 @@ namespace Infrastructure.PhotoAccessor
     public class PhotoAccessor : IPhotoAccessor
     {
         public const string ImageFolder = @"images\product_images";
-        private readonly IWebHostEnvironment _hostingEnvironment;
+        private readonly IHostingEnvironment _hostingEnvironment;
         private readonly IRepository _repository;
         private readonly string _fullImageFolderPath;
 
-        public PhotoAccessor(IWebHostEnvironment hostingEnvironment, IRepository repository)
+        public PhotoAccessor(IHostingEnvironment hostingEnvironment, IRepository repository)
         {
             _hostingEnvironment = hostingEnvironment;
             _repository = repository;

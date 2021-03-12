@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using FluentValidation;
 
 namespace Application.DTOs
 {
@@ -17,9 +18,21 @@ namespace Application.DTOs
 
         public double Cost { get; set; }
 
-        public List<string> Photos { get; set; }
+        public ICollection<ReadyToWearPhotoDto> Photos { get; set; }
+
+        public List<string> PhotoUrls { get; set; }
 
         public string MainPhoto { get; set; }
 
+    }
+
+    public class ReadyToWearDtoValidator : AbstractValidator<ReadyToWearDto>
+    {
+        public ReadyToWearDtoValidator()
+        {
+            RuleFor(a => a.Name).NotEmpty().WithMessage("Name is required.");
+            RuleFor(a => a.TypeOfClothId).NotEmpty().WithMessage("Type of cloth is required.");
+            RuleFor(a => a.NumberInStock).GreaterThan(-1).WithMessage("Number in stock is required.");
+        }
     }
 }

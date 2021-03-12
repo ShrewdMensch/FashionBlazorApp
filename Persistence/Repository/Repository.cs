@@ -42,7 +42,7 @@ namespace Persistence.Repository
         }
         public async Task<TEntity> GetByPredicate<TEntity>(Expression<Func<TEntity, bool>> predicate) where TEntity : class
         {
-            return await _context.Set<TEntity>().Where(predicate).SingleOrDefaultAsync();
+            return await _context.Set<TEntity>().Where(predicate).FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<TEntity>> GetAll<TEntity>() where TEntity : class

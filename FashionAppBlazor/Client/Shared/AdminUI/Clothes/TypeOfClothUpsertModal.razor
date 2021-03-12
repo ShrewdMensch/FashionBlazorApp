@@ -10,9 +10,19 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="exampleModalLabel">@TitlePrefix @Title</h5>
-                    <button @onclick="() => Close()" type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    @if (IsSubmitting)
+                    {
+                        <button disabled type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    }
+
+                    else
+                    {
+                        <button @onclick="() => Close()" type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    }
                 </div>
                 <div class="modal-body">
                     <div class="row">
@@ -28,7 +38,7 @@
                             <label class="control-label" for="Edit_Name">
                                 Production Days <span class="text-danger">*</span>
                             </label>
-                            <RadzenNumeric TValue="double" @bind-Value="TypeOfClothData.ProductionDays" Placeholder="Production Days" class="form-control" />
+                            <RadzenNumeric Min="0" TValue="double" @bind-Value="TypeOfClothData.ProductionDays" Placeholder="Production Days" class="form-control" />
                             <ValidationMessage For="()=>TypeOfClothData.ProductionDays" />
                         </div>
                         <div class="col-sm-12 mt-3">
@@ -68,7 +78,7 @@
                                                                 <td>@(++count)</td>
                                                                 <td>@accessory.Name</td>
                                                                 <td>
-                                                                    <RadzenNumeric TValue="int" @bind-Value="accessory.Quantity" Placeholder="Quantity" class="form-control" />
+                                                                    <RadzenNumeric Min="0" TValue="int" @bind-Value="accessory.Quantity" Placeholder="Quantity" class="form-control" />
                                                                     <ValidationMessage For="()=>accessory.Quantity" />
                                                                 </td>
                                                             </tr>
@@ -93,36 +103,26 @@
                                 </div>
                             </div>
                         </div>
-                        @*<div class="col-sm-12 mt-3 form-group">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <span class="card-title mb-0 font-weight-600">Expense Type</span>
-                                    </div>
-                                    <div class="row card-body">
-                                        <RadzenRadioButtonList @bind-Value=@TypeOfClothData.Type TValue="TypeOfClothType">
-                                            <Items>
-                                                <RadzenRadioButtonListItem Text="@TypeOfClothType.Daily.ToString()" Value="@TypeOfClothType.Daily" />
-                                                <RadzenRadioButtonListItem Text="@TypeOfClothType.Monthly.ToString()" Value="@TypeOfClothType.Monthly" />
-                                                <RadzenRadioButtonListItem Text="@TypeOfClothType.Yearly.ToString()" Value="@TypeOfClothType.Yearly" />
-                                            </Items>
-                                        </RadzenRadioButtonList>
-                                    </div>
-                                </div>
-                            </div>*@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" @onclick="() => Close()" class="btn" data-dismiss="modal">
-                        <i class="flaticon-cancel-12"></i>
-                        Discard
-                    </button>
                     @if (!IsSubmitting)
                     {
+                        <button type="button" @onclick="() => Close()" class="btn" data-dismiss="modal">
+                            <i class="flaticon-cancel-12"></i>
+                            Discard
+                        </button>
+
                         <button type="submit" class="btn btn-primary">Save</button>
                     }
 
                     else
                     {
+                        <button type="button" disabled class="btn" data-dismiss="modal">
+                            <i class="flaticon-cancel-12"></i>
+                            Discard
+                        </button>
+
                         <button class="btn btn-primary" type="button" disabled>
                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
                             Save
@@ -180,7 +180,7 @@
         {
             foreach (var accessory in Accessories)
             {
-                if(typeOfClothAccessory.Id == accessory.Id)
+                if (typeOfClothAccessory.Id == accessory.Id)
                 {
                     Accessories.FirstOrDefault(a => a.Id == accessory.Id).Quantity = typeOfClothAccessory.Quantity;
                 }
@@ -197,43 +197,43 @@
         {
             @*Accessories = Accessories.Concat(TypeOfCloth.Accessories);
 
-            Accessories = Accessories.GetDistinctAccessory();*@
-        LoadAccessories();
+                Accessories = Accessories.GetDistinctAccessory();*@
+            LoadAccessories();
+        }
+
+        if (TypeOfCloth.Id == default)
+        {
+            TitlePrefix = "Add New ";
+        }
+        else
+        {
+            TitlePrefix = "Edit ";
+        }
+
+        StateHasChanged();
     }
 
-    if (TypeOfCloth.Id == default)
+    public void Open()
     {
-        TitlePrefix = "Add New ";
+        ModalDisplay = "block;";
+        ModalClass = "Show";
+        ShowBackdrop = true;
+        StateHasChanged();
     }
-    else
+
+    public void Close()
     {
-        TitlePrefix = "Edit ";
+        ModalDisplay = "none";
+        ModalClass = "";
+        ShowBackdrop = false;
+        StateHasChanged();
     }
 
-    StateHasChanged();
-}
+    private async Task OnHandleSubmit()
+    {
+        TypeOfClothData.Accessories = Accessories;
 
-public void Open()
-{
-    ModalDisplay = "block;";
-    ModalClass = "Show";
-    ShowBackdrop = true;
-    StateHasChanged();
-}
-
-public void Close()
-{
-    ModalDisplay = "none";
-    ModalClass = "";
-    ShowBackdrop = false;
-    StateHasChanged();
-}
-
-private async Task OnHandleSubmit()
-{
-    TypeOfClothData.Accessories = Accessories;
-
-    await HandleSubmit.InvokeAsync();
-}
+        await HandleSubmit.InvokeAsync();
+    }
 
 }

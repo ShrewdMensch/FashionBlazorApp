@@ -127,6 +127,7 @@ namespace FashionAppBlazor.Server
             services.AddScoped<IUserAccessor, UserAccessor>();
             services.AddScoped<IRepository, Repository>();
             services.AddScoped<IPhotoAccessor, PhotoAccessor>();
+            services.AddScoped<IFileUpload, FileUpload>();
 
             services.AddValidatorsFromAssemblyContaining<AccessoryDto>();
 
