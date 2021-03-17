@@ -39,7 +39,7 @@ namespace FashionAppBlazor.Server.Controllers
                 {
                     readyToWearCloth = new ReadyToWear()
                     {
-                        Name = readyToWearClothDto.Name,
+                        Name = readyToWearClothDto.Name.ToTitleCase(),
                         TypeOfClothId = readyToWearClothDto.TypeOfClothId,
                         NumberInStock = readyToWearClothDto.NumberInStock
                     };

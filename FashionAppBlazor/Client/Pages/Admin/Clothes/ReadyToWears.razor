@@ -274,108 +274,110 @@
                             NewlyAddedPhotos.AddRange(images);
                         }*@
 
-                    ReadyToWear.PhotoUrls ??= new List<string>();
-                    ReadyToWear.PhotoUrls.AddRange(images);
-                }
-                else
-                {
-                    await JSRuntime.SweetAlertError("Image uploading failed");
-                    return;
-                }
-            }
-
-            IsPhotoProcessing = false;
-        }
-        catch (Exception ex)
-        {
-            await JSRuntime.SweetAlertError(ex.Message);
-            IsPhotoProcessing = false;
-        }
-    }
-
-    private async Task DeletePhoto(string imageUrl)
-    {
-        try
-        {
-            var imageIndex = ReadyToWear.PhotoUrls.FindIndex(x => x == imageUrl);
-
-            if (ReadyToWear.Id == default)
-            {
-                var result = FileService.DeletePhoto(imageUrl.Replace(@"ReadyToWearImages/", ""));
+                ReadyToWear.PhotoUrls ??= new List<string>();
+                ReadyToWear.PhotoUrls.AddRange(images);
             }
             else
             {
-                //update
-                DeletedPhotos ??= new List<string>();
-                DeletedPhotos.Add(imageUrl);
+                await JSRuntime.SweetAlertError("Image uploading failed");
+                return;
             }
-
-            ReadyToWear.PhotoUrls.RemoveAt(imageIndex);
-
         }
 
-        catch (Exception ex)
+        IsPhotoProcessing = false;
+    }
+    catch (Exception ex)
+    {
+        await JSRuntime.SweetAlertError(ex.Message);
+        IsPhotoProcessing = false;
+    }
+}
+
+private async Task DeletePhoto(string imageUrl)
+{
+    try
+    {
+        var imageIndex = ReadyToWear.PhotoUrls.FindIndex(x => x == imageUrl);
+
+        if (ReadyToWear.Id == default)
         {
-            await JSRuntime.SweetAlertError(ex.Message);
+            var result = FileService.DeletePhoto(imageUrl.Replace(@"ReadyToWearImages/", ""));
         }
+        else
+        {
+            //update
+            DeletedPhotos ??= new List<string>();
+            DeletedPhotos.Add(imageUrl);
+        }
+
+        ReadyToWear.PhotoUrls.RemoveAt(imageIndex);
 
     }
 
-    private async Task AddReadyToWearPhoto(ReadyToWearDto readyToWear)
+    catch (Exception ex)
+    {
+        await JSRuntime.SweetAlertError(ex.Message);
+    }
+
+}
+
+private async Task AddReadyToWearPhoto(ReadyToWearDto readyToWear)
+{
+    foreach (var imageUrl in ReadyToWear.PhotoUrls)
+    {
+        if (ReadyToWear.Photos == null || ReadyToWear.Photos.Where(x => x.Url == imageUrl).Count() == 0)
+        {
+
+            var newPhotoDto = new ReadyToWearPhotoDto()
+            {
+                ReadyToWearId = readyToWear.Id,
+                Url = imageUrl
+            };
+
+            await ReadyToWearService.CreatePhoto(newPhotoDto);
+
+            ReadyToWear.Photos ??= new List<ReadyToWearPhotoDto>();
+
+                ReadyToWear.Photos.Add(newPhotoDto); ///this addition is not persisted to DB
+        }
+    }
+}
+
+private async Task OnDiscard(bool isDiscarded)
+{
+    if (isDiscarded && ReadyToWear.PhotoUrls != null)
     {
         foreach (var imageUrl in ReadyToWear.PhotoUrls)
         {
-            if (ReadyToWear.Photos == null || ReadyToWear.Photos.Where(x => x.Url == imageUrl).Count() == 0)
+            if (ReadyToWear.Photos == null || !ReadyToWear.Photos.Any() || ReadyToWear.Photos.Where(x => x.Url == imageUrl).Count() == 0)
             {
 
-                var newPhotoDto = new ReadyToWearPhotoDto()
-                {
-                    ReadyToWearId = readyToWear.Id,
-                    Url = imageUrl
-                };
-
-                await ReadyToWearService.CreatePhoto(newPhotoDto);
-
-                ReadyToWear.Photos.Add(newPhotoDto); ///this addition is not persisted to DB
+                await FileService.DeletePhoto(imageUrl.Replace(ReadyToWearImagesFolderName, ""));
             }
         }
-    }
 
-    private async Task OnDiscard(bool isDiscarded)
-    {
-        if (isDiscarded && ReadyToWear.PhotoUrls != null)
+        if (ReadyToWear.Photos != null)
         {
-            foreach (var imageUrl in ReadyToWear.PhotoUrls)
-            {
-                if (ReadyToWear.Photos == null || !ReadyToWear.Photos.Any() || ReadyToWear.Photos.Where(x => x.Url == imageUrl).Count() == 0)
-                {
+            ReadyToWear.PhotoUrls = ReadyToWear.Photos.Select(p => p.Url).ToList();
+        }
 
-                    await FileService.DeletePhoto(imageUrl.Replace(ReadyToWearImagesFolderName, ""));
-                }
-            }
-
-            if (ReadyToWear.Photos != null)
-            {
-                ReadyToWear.PhotoUrls = ReadyToWear.Photos.Select(p => p.Url).ToList();
-            }
-
-            else
-            {
-                ReadyToWear.PhotoUrls = null;
-            }
+        else
+        {
+            ReadyToWear.PhotoUrls = null;
         }
     }
+}
 
-    private async Task<FileDataDto> GetFileData(IBrowserFile imgFile)
+private async Task<FileDataDto> GetFileData(IBrowserFile imgFile)
+{
+    var buffers = new byte[imgFile.Size];
+    await imgFile.OpenReadStream().ReadAsync(buffers);
+    string imageType = imgFile.ContentType;
+    return new FileDataDto()
     {
-        var buffers = new byte[imgFile.Size];
-        await imgFile.OpenReadStream().ReadAsync(buffers);
-        string imageType = imgFile.ContentType;
-        return new FileDataDto()
-        {
-            Data = buffers,
-            FileType = imageType,
-            Size = imgFile.Size
-        };
-    }
+        Data = buffers,
+        FileType = imageType,
+        Size = imgFile.Size
+    };
+}
 }
